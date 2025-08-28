@@ -8,7 +8,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
-contract DynamicToken is  Initializable, ERC20Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
+contract DynamicTokenV2 is  Initializable, ERC20Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
 
     // 1. 税收相关的参数
     // 1.1 动态税率
@@ -96,7 +96,7 @@ contract DynamicToken is  Initializable, ERC20Upgradeable, OwnableUpgradeable, U
     }
 
     // **************** 交易方法 ****************
-    function transferMeme(        
+    function transfer(        
         address sender,
         address recipient,
         uint256 amount
@@ -111,17 +111,13 @@ contract DynamicToken is  Initializable, ERC20Upgradeable, OwnableUpgradeable, U
         }
     }
 
-    function mint(address account, uint256 amount) public onlyOwner {
-        _mint(account, amount);
-    }
-
     function _getFee(uint256 amount) internal view returns (uint256) {
         // 获取费率
         if (taxTiers.length == 0) {
             return 5;
         }
 
-        for (uint256 i = taxTiers.length - 1; i >= 0; i--) {
+        for (uint256 i = 0; i < taxTiers.length; i++) {
             TaxTier memory taxTier = taxTiers[i];
             if (amount >= taxTier.minAmount) {
                 return taxTier.taxRate;
