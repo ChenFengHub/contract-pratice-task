@@ -13,8 +13,8 @@ module.exports = async ({getNamedAccounts, deployments, network}) => {
 
     const {save} = deployments;
     // 从hardhat.confg.js中获取部署的用户地址
-    const {deployer, user1, user2} = await getNamedAccounts();
-    console.log("部署：用户地址：", deployer);
+    const {owner} = await getNamedAccounts();
+    console.log("部署：用户地址：", owner);
 
 
     const metaNodeStake = await ethers.getContractFactory("MetaNodeStake");

@@ -1,16 +1,21 @@
 const { deploy } = require("@openzeppelin/hardhat-upgrades/dist/utils");
-const { ethers, upgrades }  = require("hardhat");
+const { ethers, upgrades, getNamedAccounts }  = require("hardhat");
 const { expect } = require("chai");
 const {fs} = require("fs");
 const {path} = require("path");
 describe("Starting", () => {
     it("test deploy+upgrade", async () => {
-            // 获取signer对象而不是地址字符串
-        const [ownerSigner, account2Signer, account3Signer] = await ethers.getSigners();
-        let owner = ownerSigner.address;
-        let account2 =  account2Signer.address;
-        let account3 = account3Signer.address;
+        // 获取signer对象而不是地址字符串
+        const {owner, account2, account3} = await getNamedAccounts();
+        console.log("owner:", owner);
+        console.log("account2:", account2);
+        console.log("account3:", account3);
 
+        // 获取对应的 signer
+        const ownerSigner = await ethers.getSigner(owner);
+        const account2Signer = await ethers.getSigner(account2);
+        const account3Signer = await ethers.getSigner(account3);
+        
         // 1. 部署业务合约
         // fixture中指定的名字为 01_deploy_meme_token.js中module.exports.tags的名字
         await deployments.fixture(["deployMetaNodeStake"]);
@@ -74,8 +79,8 @@ describe("Starting", () => {
         
         // 5. 用户进行质押
         // eth 池中进行质押
-        await MetaNodeStake.connect(account2Signer).stakeETH(ehtPoolId, {value: ethers.parseEther("10")});
-        await MetaNodeStake.connect(account3Signer).stakeETH(ehtPoolId, {value: ethers.parseEther("20")});
+        await MetaNodeStake.connect(account2Signer).stakeETH(ehtPoolId, {value: ethers.parseEther("0.001")});
+        await MetaNodeStake.connect(account3Signer).stakeETH(ehtPoolId, {value: ethers.parseEther("0.002")});
         // myToken池中进行质押
         await myToken.connect(account2Signer).approve(MetaNodeStakeAddress, 800);
         await myToken.connect(account3Signer).approve(MetaNodeStakeAddress, 900);
@@ -96,13 +101,14 @@ describe("Starting", () => {
 
         // 6. 接触质押并提取、领取奖励
         // ETH
-        await ownerSigner.sendTransaction({
-            to: MetaNodeStakeAddress,
-            value: ethers.parseEther("10") // 发送1 ETH到合约，充当GAS
-        });
+        // 调用unStake的gas消耗由调用者进行支付，所以如下把合约内部ETH全部转出对于合约本身是没有额外GAS消耗，是能全部转出的，所需如下代码可以注释
+        // await ownerSigner.sendTransaction({    
+        //     to: MetaNodeStakeAddress,
+        //     value: ethers.parseEther("0.01") // 发送1 ETH到合约，充当GAS
+        // });
         // 需要先往合约里多充点ETH，否则合约本身的ETH不够支付GAS将ETH原路退回
-        await MetaNodeStake.connect(account2Signer).unStake(ehtPoolId, ethers.parseEther("10"));
-        await MetaNodeStake.connect(account3Signer).unStake(ehtPoolId, ethers.parseEther("20"));
+        await MetaNodeStake.connect(account2Signer).unStake(ehtPoolId, ethers.parseEther("0.001"));
+        await MetaNodeStake.connect(account3Signer).unStake(ehtPoolId, ethers.parseEther("0.002"));
         await MetaNodeStake.connect(account2Signer).claimReward(ehtPoolId);
         await MetaNodeStake.connect(account3Signer).claimReward(ehtPoolId);
         await MetaNodeStake.connect(account2Signer).withdraw(ehtPoolId);
@@ -161,5 +167,5 @@ describe("Starting", () => {
         // 4. 对比更新后的合约是否地址是否不同
         const MetaNodeStakeAddress2 = await MetaNodeStake2.getAddress;
         expect(MetaNodeStakeAddress).to.not.equal(MetaNodeStakeAddress2, "升级后的合约地址和升级前的合约地址一致");
-    });
+    }).timeout(5 * 60 * 1000); // 默认为40s,而sepolia上部署可能比较慢
 });

@@ -3,8 +3,8 @@ const fs = require("fs");
 const path = require("path");
 module.exports = async ({getNamedAccounts, deployments}) => { 
     const {save} = deployments;
-    const {deployer} = await getNamedAccounts();
-    console.log("升级：用户地址：", deployer);
+    const {owner} = await getNamedAccounts();
+    console.log("升级：用户地址：", owner);
     // 设置 ./cache/proxyMetaNodeStake.json文件
     const storePath = path.resolve(__dirname, "./.cache/proxyMetaNodeStake.json");
     const storeData = fs.readFileSync(storePath, "utf-8");
