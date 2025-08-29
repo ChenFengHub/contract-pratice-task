@@ -42,6 +42,7 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
 
     // ************************* 事件 *************************
     event AddPool(
+        uint256 poolId,
         address indexed user,
         address indexed stTokenAddress, // 质押代币的地址。
         uint256 poolWeight,             // 质押池的权重，影响奖励分配。
@@ -94,8 +95,7 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
         checkPid(_pid) whenStakeNotPaused 
     {
         require(_amount > 0, "Amount must be greater than 0");
-        User storage user_ = users[_pid][msg.sender];
-        require(user_.stAmount != 0, "You have already staked");
+        // User storage user_ = users[_pid][msg.sender];
         Pool storage pool_ = pools[_pid];
         require(_amount > pool_.minDepositAmount, "Amount must be greater than minDepositAmount");
         require(pool_.stTokenAddress != address(0), "stTokenAddress is not set");
@@ -107,7 +107,10 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
         _stake(_pid, _amount);
     }
 
-    function stakeETH(uint256 _pid) external payable {
+    function stakeETH(uint256 _pid) 
+        external payable 
+        checkPid(_pid) whenStakeNotPaused 
+    {
         require(msg.value > 0, "Must stake more than 0");
         Pool storage pool_ = pools[_pid];
         require(pool_.stTokenAddress == address(0), "stTokenAddress must be zero address");
@@ -118,7 +121,9 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
         _stake(_pid, msg.value);
     }
 
-     function _stake(uint256 _pid, uint256 _amount) internal {
+    receive() external payable {}
+
+    function _stake(uint256 _pid, uint256 _amount) internal {
         Pool storage pool_ = pools[_pid];
         User storage user_ = users[_pid][msg.sender];
 
@@ -229,13 +234,17 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
     function withdraw(uint256 _pid) external checkPid(_pid) whenStakeNotPaused { 
         Pool storage pool_ = pools[_pid];
         User storage user_ = users[_pid][msg.sender];
-        require(user_.stAmount > 0, "no staked amount");
         uint256 totalToken_;
+        uint256 popNum_ = 0;
         for (uint256 i = 0; i < user_.requests.length; i++) {
             UnStakeRequest memory request = user_.requests[i];
             if (block.number >= request.unlockBlock) {
                  totalToken_ += request.amount;
+                 popNum_++;
             }
+        }
+        for (uint256 i = 0; i < user_.requests.length - popNum_; i++) {
+            user_.requests[i] = user_.requests[i + popNum_];
         }
         if(totalToken_ > 0) {
             if (pool_.stTokenAddress == address(0)) {
@@ -344,7 +353,7 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
         }));
 
         poolId = pools.length - 1;
-        emit AddPool(msg.sender, _stTokenAddress, _poolWeight, _minDepositAmount, _unstakeLockedBlocks);
+        emit AddPool(poolId, msg.sender, _stTokenAddress, _poolWeight, _minDepositAmount, _unstakeLockedBlocks);
     }
     function updatePool(uint256 _pid, uint256 _minDepositAmount, uint256 _unstakeLockedBlocks) public onlyRole(ADMIN_ROLE) checkPid(_pid) {
         Pool storage pool_ = pools[_pid];
@@ -362,13 +371,17 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
         require(_metaNodePerBlock > 0, "MetaNodePerBlock must be greater than 0");
         MetaNodePerBlock = _metaNodePerBlock;
 
-        setMetaNode(_MetaNode);
-
         __ERC20_init("MetaNodeStake", "MNSymbol");
         __AccessControl_init();
         __Pausable_init();
         _grantRole(ADMIN_ROLE, msg.sender);
         _grantRole(UPGRADE_ROLE, msg.sender);
+
+        setMetaNode(_MetaNode);
+    }
+
+    function isPoolExist(uint256 _pid) public view returns (bool) {
+        return _pid < pools.length;
     }
     
     /**
@@ -405,6 +418,35 @@ contract MetaNodeStakeV2 is Initializable, ERC20Upgradeable, AccessControlUpgrad
         claimPaused = false;
     }
 
-    
+    function destroyContract() external onlyRole(ADMIN_ROLE) {
+        // selfdestruct是底层强制转账（gas消耗固定永不失败，强制返还过程中不会因为gas不足而失败），其位兜底作用，当手动转账失败时生效
+        // ​​.call()允许接收方合约执行代码（如更新账本），手动转账可能因为gas不足失败，但是允许接收方合约执行代码；如果还要转移ERC20代币，则必须使用手动转账
+        // 双重保障必要性：1. 确保合约中的代币和ETH全部返还给合约创建者。2.尽量保证接收方合约执行； 3. 在手动转账失败时，确保合约中的ETH全部返还给合约创建者，进行兜底；
+        // 步骤1: 返还所有剩余代币
+        _returnRemainingTokens();
+        
+        // 步骤2: 销毁合约(手动转账ETH成功，这里销毁时返还的ETH就为0)。该方法在。08.18版本后为deprecated-弃用；
+        // 且目前合约采用透明代理，如下方法无法将代理合约持有的ETH转移出来。只能靠前面手动提取的方式
+        // selfdestruct(payable(msg.sender));
+    }
+
+    function _returnRemainingTokens() private {
+        // 情况1: 返还ETH余额
+        uint256 ethBalance = address(this).balance;
+        if (ethBalance > 0) {
+            (bool sent, ) = payable(msg.sender).call{value: ethBalance}("");
+            require(sent, "ETH transfer failed");
+        }
+
+        // 情况2: 返还ERC20代币
+        // address[] memory tokens = _registeredTokens; // 需维护代币白名单
+        // for (uint i = 0; i < tokens.length; i++) {
+        //     IERC20 token = IERC20(tokens[i]);
+        //     uint256 balance = token.balanceOf(address(this));
+        //     if (balance > 0) {
+        //         token.transfer(owner(), balance);
+        //     }
+        // }
+    }
     
 }

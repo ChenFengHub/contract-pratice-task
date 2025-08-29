@@ -25,7 +25,11 @@ module.exports = {
         process.env.PRIVATE_KEY,
         process.env.PRIVATE_KEY_2,
         process.env.PRIVATE_KEY_3
-      ]    // 账户私钥，正常是严禁保存泄露的
+      ],    // 账户私钥，正常是严禁保存泄露的
+      // 做如下参数优化，否则部署经常超时
+      gas: 8000000,
+      gasPrice: 1000000000, // 1 gwei
+      timeout: 600000, // 10分钟
     },
     hoodi: {
       url: `https://hoodi.infura.io/v3/${process.env.INFURA_API_KEY}`,

@@ -1,5 +1,5 @@
 {
-  "address": "0x7397ae0aEfE5b23f03D3f6F10aAcaE830B3462fF",
+  "address": "0xb0a2561ce9DAc036b98Ce148b96a68e46255a8f8",
   "abi": [
     "error AccessControlBadConfirmation()",
     "error AccessControlUnauthorizedAccount(address,bytes32)",
@@ -70,5 +70,5 @@
     "function withdraw(uint256)",
     "receive() payable"
   ],
-  "numDeployments": 2
+  "numDeployments": 3
 }

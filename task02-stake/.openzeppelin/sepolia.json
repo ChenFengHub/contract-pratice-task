@@ -15,6 +15,11 @@
       "address": "0x7397ae0aEfE5b23f03D3f6F10aAcaE830B3462fF",
       "txHash": "0x90edb431651bae6446fb357a265cb640ed0ab5ad99714ee3005a18a59c1b4e4b",
       "kind": "transparent"
+    },
+    {
+      "address": "0xb0a2561ce9DAc036b98Ce148b96a68e46255a8f8",
+      "txHash": "0x95ccdc4f3f2b36f974662eca04886c05eba4a359bafd3f59d923fbed6acf7cfa",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -29,56 +34,56 @@
             "offset": 0,
             "slot": "0",
             "type": "t_array(t_struct(Pool)5871_storage)dyn_storage",
-            "contract": "MetaNodeStake",
-            "src": "contracts\\MetaNodeStake.sol:73"
+            "contract": "MetaNodeStakeV2",
+            "src": "contracts\\MetaNodeStakeV2.sol:73"
           },
           {
             "label": "users",
             "offset": 0,
             "slot": "1",
             "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(User)5882_storage))",
-            "contract": "MetaNodeStake",
-            "src": "contracts\\MetaNodeStake.sol:74"
+            "contract": "MetaNodeStakeV2",
+            "src": "contracts\\MetaNodeStakeV2.sol:74"
           },
           {
             "label": "totalPoolWeight",
             "offset": 0,
             "slot": "2",
             "type": "t_uint256",
-            "contract": "MetaNodeStake",
-            "src": "contracts\\MetaNodeStake.sol:77"
+            "contract": "MetaNodeStakeV2",
+            "src": "contracts\\MetaNodeStakeV2.sol:77"
           },
           {
             "label": "MetaNodePerBlock",
             "offset": 0,
             "slot": "3",
             "type": "t_uint256",
-            "contract": "MetaNodeStake",
-            "src": "contracts\\MetaNodeStake.sol:81"
+            "contract": "MetaNodeStakeV2",
+            "src": "contracts\\MetaNodeStakeV2.sol:81"
           },
           {
             "label": "stakePaused",
             "offset": 0,
             "slot": "4",
             "type": "t_bool",
-            "contract": "MetaNodeStake",
-            "src": "contracts\\MetaNodeStake.sol:82"
+            "contract": "MetaNodeStakeV2",
+            "src": "contracts\\MetaNodeStakeV2.sol:82"
           },
           {
             "label": "claimPaused",
             "offset": 1,
             "slot": "4",
             "type": "t_bool",
-            "contract": "MetaNodeStake",
-            "src": "contracts\\MetaNodeStake.sol:82"
+            "contract": "MetaNodeStakeV2",
+            "src": "contracts\\MetaNodeStakeV2.sol:82"
           },
           {
             "label": "MetaNode",
             "offset": 2,
             "slot": "4",
             "type": "t_contract(IERC20)1883",
-            "contract": "MetaNodeStake",
-            "src": "contracts\\MetaNodeStake.sol:87"
+            "contract": "MetaNodeStakeV2",
+            "src": "contracts\\MetaNodeStakeV2.sol:87"
           }
         ],
         "types": {
@@ -219,11 +224,11 @@
             "numberOfBytes": "8"
           },
           "t_array(t_struct(Pool)5871_storage)dyn_storage": {
-            "label": "struct MetaNodeStake.Pool[]",
+            "label": "struct MetaNodeStakeV2.Pool[]",
             "numberOfBytes": "32"
           },
           "t_array(t_struct(UnStakeRequest)5887_storage)dyn_storage": {
-            "label": "struct MetaNodeStake.UnStakeRequest[]",
+            "label": "struct MetaNodeStakeV2.UnStakeRequest[]",
             "numberOfBytes": "32"
           },
           "t_contract(IERC20)1883": {
@@ -231,15 +236,15 @@
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_struct(User)5882_storage)": {
-            "label": "mapping(address => struct MetaNodeStake.User)",
+            "label": "mapping(address => struct MetaNodeStakeV2.User)",
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_mapping(t_address,t_struct(User)5882_storage))": {
-            "label": "mapping(uint256 => mapping(address => struct MetaNodeStake.User))",
+            "label": "mapping(uint256 => mapping(address => struct MetaNodeStakeV2.User))",
             "numberOfBytes": "32"
           },
           "t_struct(Pool)5871_storage": {
-            "label": "struct MetaNodeStake.Pool",
+            "label": "struct MetaNodeStakeV2.Pool",
             "members": [
               {
                 "label": "stTokenAddress",
@@ -287,7 +292,7 @@
             "numberOfBytes": "224"
           },
           "t_struct(UnStakeRequest)5887_storage": {
-            "label": "struct MetaNodeStake.UnStakeRequest",
+            "label": "struct MetaNodeStakeV2.UnStakeRequest",
             "members": [
               {
                 "label": "amount",
@@ -305,7 +310,7 @@
             "numberOfBytes": "64"
           },
           "t_struct(User)5882_storage": {
-            "label": "struct MetaNodeStake.User",
+            "label": "struct MetaNodeStakeV2.User",
             "members": [
               {
                 "label": "stAmount",
